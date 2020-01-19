@@ -1,0 +1,476 @@
+{% extends "layout.html" %}
+{% from 'macros.html' import add_checkpoint,add_data, chemdraw, error_message, warning_message %}
+
+{% block title %}
+<h1>Optimize</h1>
+{% endblock %}
+
+{% block content %}
+<!--    {% if not config['DEMO'] %}-->
+
+<!--    <hr>-->
+
+<!--    <h3>Predict</h3>-->
+<!--    {% endif %}-->
+<!--{{ add_checkpoint('predict', checkpoint_upload_warnings, checkpoint_upload_errors) }}-->
+<!--    <form enctype="multipart/form-data" method="POST">-->
+<!--Model checkpoint selector-->
+<!--        <h5>Model checkpoint</h5>-->
+<!--        <select name="checkpointName" required>-->
+<!--            {% for checkpoint in checkpoints %}-->
+<!--                <option value="{{ checkpoint[0] }}">{{ checkpoint[1] }}</option>-->
+<!--            {% endfor %}-->
+<!--        </select>-->
+
+<!--        <br>-->
+<!--        <br>-->
+
+<!--SMILES upload type selector-->
+<div class="btn-group" id="basedSelect" data-toggle="buttons">
+    <label id="Rule_button" class="btn btn-primary active">
+        <input type="radio" name="inputType" value="text" autocomplete="off"> Rule-based
+    </label>
+
+    <label id="RL_button" class="btn btn-primary ">
+        <input type="radio" name="inputType" value="text" autocomplete="off"> RL-based
+    </label>
+
+    <label id="TL_button" class="btn btn-primary">
+        <input type="radio" name="inputType" value="file" autocomplete="off"> TL-based
+    </label>
+
+    <label id="Latent_button" class="btn btn-primary">
+        <input type="radio" name="inputType" value="file" autocomplete="off"> Latent-based
+    </label>
+</div>
+
+<br>
+
+<!--SMILES input-->
+<div id="Rule_div">
+    <form class="form-inline">
+        <br>
+        <div class="row">
+            <div class="col-xs-4">
+                {{ add_data('optimize', optimize_upload_warnings, optimize_upload_errors) }}
+            </div>
+            <div class="col-xs-4 col-md-offset-1">
+
+                <span class="h4">Data</span>
+                <br><br>
+                <div>
+                    <select class="form-control  ">
+                        <option value="volvo">Rule_select_1_1</option>
+                        <option value="saab">Rule_select_1_2</option>
+                        <option value="opel">Rule_select_1_3</option>
+                        <option value="audi">Rule_select_1_4</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <br>
+            <button class="btn btn-primary btn-md col-xs-2 col-md-offset-1">Run fragment index</button>
+
+        </div>
+        <hr>
+        <div>
+            <h3>Fragment Dataset</h3>
+
+
+            <select class="form-control" style="width: 200px;">
+                <option value="">Rule_select_2_1</option>
+                <option value="">Rule_select_2_2</option>
+                <option value="">Rule_select_2_3</option>
+                <option value="">Rule_select_2_4</option>
+            </select>
+
+            <div class="checkbox ">
+                <label>
+                    <input type="checkbox">啦啦啦&nbsp;&nbsp;
+                </label>
+                <label>
+                    <input type="checkbox">啦啦啦&nbsp;&nbsp;
+                </label>
+                <label>
+                    <input type="checkbox">啦啦啦&nbsp;&nbsp;
+                </label>
+                <label>
+                    <input type="checkbox">啦啦啦&nbsp;&nbsp;
+                </label>
+            </div>
+
+        </div>
+        <br>
+
+        <div class=" row">
+            <div class="col-xs-2">
+                <label for="Rule_input_1" class="h4">Smiles</label>
+            </div>
+            <div class="col-xs-2">
+                <input type="text" class="form-control " id="Rule_input_1" placeholder="请输入啥啥啥">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-2">
+                <label for="Rule_input_2" class="h4">Substructure</label>
+            </div>
+            <div class="col-xs-2">
+                <input type="email" class="form-control" id="Rule_input_2"
+                       placeholder="请输入啥啥啥">
+            </div>
+        </div>
+
+
+        <br>
+
+
+    </form>
+</div>
+
+<div id="RL_div" style="display:none">
+    <form class="form-inline">
+        <div class="row">
+            <br>
+            <div class="col-xs-9">
+                <div class="row">
+                    <div class="h4 col-xs-2"> reward</div>
+                    <div class="form-group col-xs-5">
+                        <div class="input-group ">
+                            <input type="text" class="form-control" placeholder="数字" style="width: 100px;">
+                            <div class="input-group-addon">× logP +</div>
+                            <input type="text" class="form-control" placeholder="数字" style="width: 100px;">
+                            <div class="input-group-addon">× QED +</div>
+                            <input type="text" class="form-control" placeholder="数字" style="width: 100px;">
+                            <div class="input-group-addon">× Sim</div>
+                        </div>
+                        <br><br>
+                        <span class="h4  ">or</span>
+
+                        <select class="form-control ">
+                            <option value="">RL_select_1_1</option>
+                            <option value="">RL_select_1_2</option>
+                            <option value="">RL_select_1_3</option>
+                            <option value="">RL_select_1_4</option>
+                        </select>
+                        <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip"
+                              data-placement="right"
+                              title="predictive model checkpoint"></span>
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="h4 col-xs-2"> generate ckpt</div>
+                    <div class="col-xs-4">
+                        <select class="form-control ">
+                            <option value="">RL_select_2_1</option>
+                            <option value="">RL_select_2_2</option>
+                            <option value="">RL_select_3</option>
+                            <option value="">RL_select_2_4</option>
+                        </select>
+                        <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip"
+                              data-placement="right"
+                              title="generative model checkpoint"></span>
+                    </div>
+                </div>
+                <br>
+                <div class=" row">
+                    <div class="col-xs-2">
+                        <label for="RL_input_1" class="h4">balance ratio</label>
+                    </div>
+                    <div class="col-xs-4">
+                        <input type="text" class="form-control " id="RL_input_1" placeholder="请输入啥啥啥">
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-xs-2">
+                        <label for="RL_input_2" class="h4">training epoch</label>
+                    </div>
+                    <div class="col-xs-4">
+                        <input type="email" class="form-control " id="RL_input_2"
+                               placeholder="请输入啥啥啥">
+                    </div>
+                </div>
+            </div>
+            <br>
+
+            <div class="col-xs-auto ">
+                <button type="submit" class="btn btn-primary btn-md col-xs-2 col-md-offset-1">Run RL opt</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="TL_div" style="display:none">
+    <form class="form-inline">
+        <br>
+        <div class="row">
+            <div class="col-xs-4">
+                {{ add_data('optimize', optimize_upload_warnings, optimize_upload_errors) }}
+            </div>
+            <div class="col-xs-4 col-md-offset-1">
+
+                <!--                <span class="h4">Data</span>-->
+
+                <br>
+                <div class="row">
+                    <div class="h4 col-xs-6"> Finetuning Dataset</div>
+                    <div class="col-xs-6">
+                        <select class="form-control ">
+                            <option value="">TL_select_1_1</option>
+                            <option value="">TL_select_1_2</option>
+                            <option value="">TL_select_1_3</option>
+                            <option value="">TL_select_1_4</option>
+                        </select>
+                        <!--                        <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip"-->
+                        <!--                              data-placement="right"-->
+                        <!--                              title="generative model checkpoint"></span>-->
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="h4 col-xs-6"> generate ckpt</div>
+                    <div class="col-xs-6">
+                        <select class="form-control ">
+                            <option value="">TL_select_2_1</option>
+                            <option value="">TL_select_2_2</option>
+                            <option value="">TL_select_2_3</option>
+                            <option value="">TL_select_2_4</option>
+                        </select>
+                        <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip"
+                              data-placement="right"
+                              title="generative model checkpoint"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-6">
+                        <label for="RL_input_2" class="h4">epoch:</label>
+                    </div>
+                    <div class="col-xs-6">
+                        <input type="email" class="form-control " id="TL_input_1"
+                               placeholder="请输入啥啥啥">
+                    </div>
+                </div>
+
+
+            </div>
+
+            <br>
+            <button class="btn btn-primary btn-md col-xs-2 col-md-offset-1">Run TL opt</button>
+
+        </div>
+
+    </form>
+
+
+</div>
+
+<div id="Latent_div" style="display:none">
+    <form class="form-inline">
+        <div class="row">
+            <br>
+            <div class="col-xs-9">
+                <div class="row">
+                    <div class="h4 col-xs-2"> reward</div>
+                    <div class="form-group col-xs-5">
+                        <div class="input-group ">
+                            <input type="text" class="form-control" placeholder="数字" style="width: 100px;">
+                            <div class="input-group-addon">× logP +</div>
+                            <input type="text" class="form-control" placeholder="数字" style="width: 100px;">
+                            <div class="input-group-addon">× QED +</div>
+                            <input type="text" class="form-control" placeholder="数字" style="width: 100px;">
+                            <div class="input-group-addon">× Sim</div>
+                        </div>
+                        <br><br>
+                        <span class="h4  ">or</span>
+
+                        <select class="form-control ">
+                            <option value="">Latent_select_1_1</option>
+                            <option value="">Latent_select_1_2</option>
+                            <option value="">Latent_select_1_3</option>
+                            <option value="">Latent_select_1_4</option>
+                        </select>
+                        <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip"
+                              data-placement="right"
+                              title="predictive model checkpoint"></span>
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="h4 col-xs-2"> Gmodel ckpt</div>
+                    <div class="col-xs-4">
+                        <select class="form-control ">
+                            <option value="">Latent_select_2_1</option>
+                            <option value="">Latent_select_2_2</option>
+                            <option value="">Latent_select_3</option>
+                            <option value="">Latent_select_2_4</option>
+                        </select>
+                        <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip"
+                              data-placement="right"
+                              title="Please use AE-based model checkpoint!"></span>
+                    </div>
+                </div>
+                <br>
+                <div class=" row">
+                    <div class="col-xs-2">
+                        <label for="Latent_input_1" class="h4">balance ratio</label>
+                    </div>
+                    <div class="col-xs-4">
+                        <input type="text" class="form-control " id="Latent_input_1" placeholder="请输入啥啥啥">
+                    </div>
+                </div>
+            </div>
+            <br>
+
+            <div class="col-xs-auto ">
+                <button type="submit" class="btn btn-primary btn-md col-xs-2 col-md-offset-1">Run Latent opt</button>
+            </div>
+        </div>
+    </form>
+
+
+</div>
+
+<hr>
+
+<form>
+    <div class="row">
+        <div>
+            <h3>Optimized results</h3>
+            <div class="col-xs-2">
+                <select class="form-control">
+                    <option value="">select_1_1</option>
+                    <option value="">select_1_2</option>
+                    <option value="">select_1_3</option>
+                    <option value="">select_1_4</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary   col-xs-2 col-xs-offset-8 ">DownLoad CSV</button>
+    </div>
+</form>
+<br>
+
+
+<div class="row">
+    <div class="col-12"
+         style="height: 400px;background-color: #FF9900;text-align: center;line-height:400px;vertical-align:middle;">
+        marvinView
+    </div>
+</div>
+</div>
+
+<!--<br>-->
+
+<!--SMILES input functionality-->
+<script>
+    $(document).ready(function () {
+        $(document).ready(function () {
+            $("#Rule_button").click(function () {
+                $("#Rule_div").show();
+                // $("#textSmilesInput").prop('required', true);
+                $("#RL_div").hide();
+                // $("#fileSmilesInput").prop('required', false);
+                $("#TL_div").hide();
+                $("#Latent_div").hide();
+                // $("#drawSmilesInput").prop('required', false);
+                // $("#drawSmilesInput").val('');
+            });
+            $("#RL_button").click(function () {
+
+                $("#Rule_div").hide();
+                // $("#textSmilesInput").prop('required', true);
+                $("#RL_div").show();
+                // $("#fileSmilesInput").prop('required', false);
+                $("#TL_div").hide();
+                $("#Latent_div").hide();
+                // $("#drawSmilesInput").prop('required', false);
+                // $("#drawSmilesInput").val('');
+            });
+            $("#TL_button").click(function () {
+
+                $("#Rule_div").hide();
+                // $("#textSmilesInput").prop('required', true);
+                $("#RL_div").hide();
+                // $("#fileSmilesInput").prop('required', false);
+                $("#TL_div").show();
+                $("#Latent_div").hide();
+                // $("#drawSmilesInput").prop('required', false);
+                // $("#drawSmilesInput").val('');
+            });
+            $("#Latent_button").click(function () {
+
+                $("#Rule_div").hide();
+                // $("#textSmilesInput").prop('required', true);
+                $("#RL_div").hide();
+                // $("#fileSmilesInput").prop('required', false);
+                $("#TL_div").hide();
+                $("#Latent_div").show();
+                // $("#drawSmilesInput").prop('required', false);
+                // $("#drawSmilesInput").val('');
+            });
+        });
+
+        // $("#convertToSmiles").click(function () {
+        //     $("#drawSmilesInput").val(jsmeApplet.smiles());
+        // });
+    });
+</script>
+
+<!--GPU selector-->
+<!--{% if cuda %}-->
+<!--<h5>GPU</h5>-->
+<!--<select name="gpu">-->
+<!--    <option value="None">None</option>-->
+<!--    {% for gpu in gpus %}-->
+<!--    <option value="{{ gpu }}">{{ gpu }}</option>-->
+<!--    {% endfor %}-->
+<!--</select>-->
+<!--<br>-->
+<!--<br>-->
+<!--{% endif %}-->
+
+<!--<button type="submit" class="btn btn-primary btn-md">Predict</button>-->
+<!--</form>-->
+
+<br>
+
+{% if warnings %}
+{% for warning in warnings %}
+{{ warning_message(warning) }}
+{% endfor %}
+{% endif %}
+
+{% if errors %}
+{% for error in errors %}
+{{ error_message(error) }}
+{% endfor %}
+{% endif %}
+
+<!--{% if predicted %}-->
+<!--<hr>-->
+
+<!--<a href="{{ url_for('download_predictions') }}">-->
+<!--    <button class="btn btn-default btn-md">Download Predictions</button>-->
+<!--</a>-->
+
+<!--<br>-->
+<!--<br>-->
+
+<!--{% for i in range(num_smiles) %}-->
+<!--<p>SMILES: {{ smiles[i] }}</p>-->
+
+<!--{% for j in range(num_tasks) %}-->
+<!--<p>{{ task_names[j] }}: {{ preds[i][j] }}</p>-->
+<!--{% endfor %}-->
+
+<!--<hr>-->
+<!--{% endfor %}-->
+<!--{% if show_more > 0 %}-->
+<!--<p>... and {{ show_more }} more. Download file for full predictions.</p>-->
+<!--{% endif %}-->
+<!--{% endif %}-->
+{% endblock %}

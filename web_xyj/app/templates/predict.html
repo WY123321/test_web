@@ -1,0 +1,227 @@
+{% extends "layout.html" %}
+{% from 'macros.html' import add_checkpoint, chemdraw, error_message, warning_message %}
+
+{% block title %}
+<!-- <h1>Predict</h1> -->
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-4">
+            <h3>Predict</h3>
+            {% if not config['DEMO'] %}
+            {{ add_checkpoint('predict', checkpoint_upload_warnings, checkpoint_upload_errors) }}
+            {% endif %}
+        </div>
+        <div class="col-xs-8">
+            <!-- <h3>Predict</h3> -->
+            <form enctype="multipart/form-data" method="POST">
+                <!--Model checkpoint selector-->
+                <h3>Model checkpoint</h3>
+                <div class="row">
+                    <div class="col-xs-8">
+                        <select name="checkpointName" class="form-control" required>
+                            {% for checkpoint in checkpoints %}
+                            <option value="{{ checkpoint[0] }}">{{ checkpoint[1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <br>
+
+                <!--SMILES upload type selector-->
+                <div class="btn-group" id="inputSelect" data-toggle="buttons">
+                    <label id="textButton" class="btn btn-primary active">
+                        <input type="radio" name="inputType" value="text" autocomplete="off"/>
+                        Text Input
+                    </label>
+                    <label id="fileButton" class="btn btn-primary">
+                        <input type="radio" name="inputType" value="file" autocomplete="off"/>
+                        Upload File
+                    </label>
+                    <label id="drawButton" class="btn btn-primary">
+                        <input type="radio" name="inputType" value="file" autocomplete="off"/>
+                        Draw Molecule
+                    </label>
+                </div>
+
+                <br/>
+
+                <!--SMILES input-->
+                <div id="textInputForm">
+                    <h5>SMILES (one per line)</h5>
+                    <textarea id="textSmilesInput" name="textSmiles" cols="60" rows="5" placeholder="SMILES"
+                              required></textarea>
+                </div>
+                <div id="fileInputForm" style="display:none">
+                    <h5>File containing SMILES (one per line)</h5>
+                    <input id="fileSmilesInput" type="file" name="data" accept=".csv"/>
+                </div>
+                <div id="drawInputForm" style="display:none">
+                    <h5>Draw a molecule</h5>
+                    {{ chemdraw() }}
+                    <br/>
+                    <button type="button" id="convertToSmiles" class="btn btn-primary btn-xs">
+                        Convert to SMILES
+                    </button>
+                    <input id="drawSmilesInput" name="drawSmiles" placeholder="SMILES"/>
+                </div>
+
+                <br/>
+
+                <!--SMILES input functionality-->
+                <script>
+                    $(document).ready(function () {
+                        $(document).ready(function () {
+                            $("#textButton").click(function () {
+                                $("#textInputForm").show();
+                                $("#textSmilesInput").prop("required", true);
+                                $("#fileInputForm").hide();
+                                $("#fileSmilesInput").prop("required", false);
+                                $("#drawInputForm").hide();
+                                $("#drawSmilesInput").prop("required", false);
+                                $("#drawSmilesInput").val("");
+                            });
+                            $("#fileButton").click(function () {
+                                $("#textInputForm").hide();
+                                $("#textSmilesInput").prop("required", false);
+                                $("#textSmilesInput").val("");
+                                $("#fileInputForm").show();
+                                $("#fileSmilesInput").prop("required", true);
+                                $("#drawInputForm").hide();
+                                $("#drawSmilesInput").prop("required", false);
+                                $("#drawSmilesInput").val("");
+                            });
+                            $("#drawButton").click(function () {
+                                $("#textInputForm").hide();
+                                $("#textSmilesInput").prop("required", false);
+                                $("#textSmilesInput").val("");
+                                $("#fileInputForm").hide();
+                                $("#fileSmilesInput").prop("required", false);
+                                $("#drawInputForm").show();
+                                $("#drawSmilesInput").prop("required", true);
+                            });
+                        });
+
+                        $("#convertToSmiles").click(function () {
+                            $("#drawSmilesInput").val(jsmeApplet.smiles());
+                        });
+                    });
+
+                </script>
+
+                <!--GPU selector-->
+                <!-- {% if cuda %}
+                <h5>GPU</h5>
+                <select name="gpu">
+                    <option value="None">None</option>
+                    {% for gpu in gpus %}
+                    <option value="{{ gpu }}">{{ gpu }}</option>
+                    {% endfor %}
+                </select>
+                <br />
+                <br /> {% endif %} -->
+                <button type="submit" class="btn btn-primary btn-md" id="predict_result">Predict</button>
+                <button type="submit" class="btn btn-primary btn-md">Predict ALL</button>
+            </form>
+
+            <script type="text/javascript">
+                $.ajax({
+                    type: "POST",
+                    url: "http://192.168.50.99:5001/predict",
+                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                    data: {},
+                    dataType: "json",
+                    success: function (data) {
+                        console.log(data);
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+
+
+                $(document).ready(function () {
+
+
+                    $("#predict_result").click(function () {
+                        console.log("111111");
+                    });
+                });
+            </script>
+            {% if warnings %}
+            {% for warning in warnings %}
+            {{ warning_message(warning) }}
+            {% endfor %}
+            {% endif %}
+
+            {% if errors %}
+            {% for error in errors %}
+            {{ error_message(error) }}
+            {% endfor %}
+            {% endif %}
+
+        </div>
+
+        {% if predicted %}
+        <hr>
+        <div class="row">
+            <h4 class="col-xs-2">Predict 结果</h4>
+            <a href="{{ url_for('download_predictions') }}">
+                <button type="submit" class="btn btn-default btn-md col-xs-2 col-md-offset-8">DownLoad CSV</button>
+            </a>
+        </div>
+        <br>
+        <br>
+        <div id="example-table" style="height: 500px;width: 100%"></div>
+        <script type="text/javascript">
+
+            var table = new Tabulator("#example-table", {
+                layout: "fitColumns",
+                height: "100%",
+                columns: [
+                    {title: "Name", field: "name"},
+                    {title: "Progress", field: "progress", sorter: "number"},
+                    {title: "Gender", field: "gender"},
+                    {title: "Rating", field: "rating"},
+                    {title: "Favourite Color", field: "col"},
+                    {title: "Date Of Birth", field: "dob", align: "center"},
+                ],
+            });
+            table.addData(
+                [
+                    {name: "bob", progress: "0", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "1", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "2", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "3", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                ],
+                true);
+        </script>
+
+
+        <!--            <hr/>-->
+        <!--            <a href="{{ url_for('download_predictions') }}">-->
+        <!--                <button class="btn btn-default btn-md">Download-->
+        <!--                    Predictions-->
+        <!--                </button>-->
+        <!--            </a>-->
+        <br/>
+        <br/>
+        {% for i in range(num_smiles) %}
+        <p>SMILES: {{ smiles[i] }}</p>
+
+        {% for j in range(num_tasks) %}
+        <p>{{ task_names[j] }}: {{ preds[i][j] }}</p>
+        {% endfor %}
+        <hr/>
+        {% endfor %}
+
+        {% if show_more > 0 %}
+        <p>... and {{ show_more }} more. Download file for full predictions.</p>
+        {% endif %}
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
