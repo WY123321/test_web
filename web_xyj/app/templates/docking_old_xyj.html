@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% from 'macros.html' import add_checkpoint, chemdraw, error_message, warning_message %}
+
+{% block title %}
+<h1>Generate</h1>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-xs-4 col-sm-4 col-lg-4">
+    {% if not config['DEMO'] %}
+    {{ add_checkpoint('generate', checkpoint_upload_warnings, checkpoint_upload_errors) }}
+
+    <h3>Generate</h3>
+    {% endif %}
+
+    <form enctype="multipart/form-data" method="POST">
+        <!--Model checkpoint selector-->
+        <h5>Model checkpoint</h5>
+        <!-- <select name="checkpointName" required>
+            {% for checkpoint in checkpoints %}
+            <option value="{{ checkpoint[0] }}">{{ checkpoint[1] }}</option>
+            {% endfor %}
+        </select> -->
+
+        <div class="custom-control custom-checkbox" name="checkpointName">
+            {% for checkpoint in checkpoints %}
+            <input type="checkbox" class="custom-control-input" value="{{checkpoint[0] }}" checked>
+            <label class="custom-control-label" for="defaultChecked2"> {{ checkpoint[1] }}</label>
+            {% endfor %}
+        </div>
+
+        <br>
+
+        <button type="submit" class="btn btn-primary btn-md">Generate</button>
+    </form>
+    </div>
+
+    <div class="col-xs-8 col-sm-8 col-lg-8">
+
+
+    </div>
+</div>
+{% endblock %}

@@ -49,7 +49,7 @@ def get_db():
 def query_db(query: str, args: Tuple[Any] = (), one: bool = False) -> Union[Optional[sqlite3.Row], List[sqlite3.Row]]:
     """
     Helper function to allow for easy queries.
-    
+
     :param query: The query to be executed.
     :param args: The arguments to be passed into the query.
     :param one: Whether the query should return all results or just the first. 
@@ -99,11 +99,12 @@ def insert_user(username: str) -> Tuple[int, str]:
     count = 0
     while new_user_id is None:
         temp_name = username
-        
+
         if count != 0:
             temp_name += str(count)
         try:
-            cur = db.execute('INSERT INTO user (username) VALUES (?)', [temp_name])
+            cur = db.execute(
+                'INSERT INTO user (username) VALUES (?)', [temp_name])
             new_user_id = cur.lastrowid
         except sqlite3.IntegrityError:
             count += 1
@@ -129,9 +130,9 @@ def get_ckpts(user_id: int) -> List[sqlite3.Row]:
     return query_db(f'SELECT * FROM ckpt WHERE associated_user = {user_id}')
 
 
-def insert_ckpt(ckpt_name: str, 
-                associated_user: str, 
-                model_class: str, 
+def insert_ckpt(ckpt_name: str,
+                associated_user: str,
+                model_class: str,
                 num_epochs: int,
                 ensemble_size: int,
                 training_size: int) -> Tuple[int, str]:
@@ -165,11 +166,54 @@ def insert_ckpt(ckpt_name: str,
         except sqlite3.IntegrityError as e:
             count += 1
             continue
-    
+
     db.commit()
     cur.close()
 
     return new_ckpt_id, temp_name
+
+
+# def insert_gmodel_ckpt(ckpt_name: str,
+#                        associated_user: str,
+#                        model_class: str,
+#                        conf_load: str,
+#                        vocab_load: str,
+#                        seed: int) -> Tuple[int, str]:
+#     """
+#     Inserts a new checkpoint. If the desired name is already taken,  
+#     appends integers incrementally until an open name is found.   
+
+#     :param ckpt_name: The desired name for the new checkpoint.
+#     :param associated_user: The user that should be associated with the new checkpoint.
+#     :param model_class: The class of the new checkpoint.
+#     :param num_epochs: The number of epochs the new checkpoint will run for.
+#     :param ensemble_size: The number of models included in the ensemble.
+#     :param training_size: The number of molecules used for training.
+#     :return A tuple containing the id and name of the new checkpoint.   
+#     """
+#     db = get_db()
+
+#     new_ckpt_id = None
+#     count = 0
+#     while new_ckpt_id is None:
+#         temp_name = ckpt_name
+
+#         if count != 0:
+#             temp_name += str(count)
+#         try:
+#             cur = db.execute('INSERT INTO ckpt '
+#                              '(ckpt_name, associated_user,class, epochs, ensemble_size, training_size) '
+#                              'VALUES (?, ?, ?, ?, ?, ?)',
+#                              [temp_name, associated_user, model_class, conf_load, vocab_load, seed])
+#             new_ckpt_id = cur.lastrowid
+#         except sqlite3.IntegrityError as e:
+#             count += 1
+#             continue
+
+#     db.commit()
+#     cur.close()
+
+#     return new_ckpt_id, temp_name
 
 
 def delete_ckpt(ckpt_id: int):
@@ -182,7 +226,8 @@ def delete_ckpt(ckpt_id: int):
     rows = query_db(f'SELECT * FROM model WHERE associated_ckpt = {ckpt_id}')
 
     for row in rows:
-        os.remove(os.path.join(app.config['CHECKPOINT_FOLDER'], f'{row["id"]}.pt'))
+        os.remove(os.path.join(
+            app.config['CHECKPOINT_FOLDER'], f'{row["id"]}.pt'))
 
     db = get_db()
     cur = db.cursor()
@@ -190,6 +235,7 @@ def delete_ckpt(ckpt_id: int):
     db.execute(f'DELETE FROM model WHERE associated_ckpt = {ckpt_id}')
     db.commit()
     cur.close()
+
 
 def get_models(ckpt_id: int) -> List[sqlite3.Row]:
     """
@@ -200,6 +246,7 @@ def get_models(ckpt_id: int) -> List[sqlite3.Row]:
     """
     return query_db(f'SELECT * FROM model WHERE associated_ckpt = {ckpt_id}')
 
+
 def insert_model(ckpt_id: int) -> str:
     """
     Inserts a new model.
@@ -208,12 +255,14 @@ def insert_model(ckpt_id: int) -> str:
     :return: The id of the new model.
     """
     db = get_db()
-    cur = db.execute('INSERT INTO model (associated_ckpt) VALUES (?)', [ckpt_id])
+    cur = db.execute(
+        'INSERT INTO model (associated_ckpt) VALUES (?)', [ckpt_id])
     new_model_id = cur.lastrowid
     db.commit()
     cur.close()
 
     return new_model_id
+
 
 def get_datasets(user_id: int) -> List[sqlite3.Row]:
     """
@@ -230,8 +279,8 @@ def get_datasets(user_id: int) -> List[sqlite3.Row]:
     return query_db(f'SELECT * FROM dataset WHERE associated_user = {user_id}')
 
 
-def insert_dataset(dataset_name: str, 
-                   associated_user: str, 
+def insert_dataset(dataset_name: str,
+                   associated_user: str,
                    dataset_class: str) -> Tuple[int, str]:
     """
     Inserts a new dataset. If the desired name is already taken,  
@@ -258,7 +307,7 @@ def insert_dataset(dataset_name: str,
         except sqlite3.IntegrityError as e:
             count += 1
             continue
-    
+
     db.commit()
     cur.close()
 
