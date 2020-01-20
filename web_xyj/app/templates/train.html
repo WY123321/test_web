@@ -1,0 +1,214 @@
+{% extends "layout.html" %}
+{% from 'macros.html' import add_data, error_message, warning_message %}
+
+{% block title %}
+<h1>Train</h1>
+{% endblock %}
+
+{% block content %}
+
+
+<div class=row>
+    <div class="col-sm-3">
+        {{ add_data('train', data_upload_warnings, data_upload_errors) }}
+
+        <hr>
+
+        <h3>Train</h3>
+
+        <form id="trainForm" method="POST">
+            <h5>Data</h5>
+            <select name="dataName" required>
+                {% for dataset in datasets %}
+                <option value="{{ dataset[0] }}">{{ dataset[1] }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <h5>Dataset type</h5>
+            <div class="btn-group" id="datasetTypeSelect" data-toggle="buttons">
+                <label class="btn btn-primary active">
+                    <input type="radio" name="datasetType" id="regression" value="regression" autocomplete="off">
+                    Regression
+                </label>
+                <label class="btn btn-primary">
+                    <input type="radio" name="datasetType" id="classification" value="classification"
+                           autocomplete="off"> Classification
+                </label>
+            </div>
+            <br>
+
+            <h5>Epochs</h5>
+            <input type="number" name="epochs" min="1" step="1" value="30" required>
+
+            <h5>Ensemble Size</h5>
+            <select name="ensembleSize" required>
+                <option value="1" selected="selected">1</option>
+                <option value="3">3</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+            </select>
+
+            <h5>Checkpoint name</h5>
+            <!--TODO: Verify that name isn't already in use-->
+            <input type="text" name="checkpointName" placeholder="name" required>
+
+            {% if cuda %}
+            <h5>GPU</h5>
+            <select name="gpu">
+                <option value="None">None</option>
+                {% for gpu in gpus %}
+                <option value="{{gpu}}">{{gpu}}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <br>
+            {% endif %}
+
+            <br>
+            <br>
+
+            <button id="train" class="btn btn-primary btn-md">Train</button>
+            <button id="training" class="btn btn-default btn-md disabled" disabled="disabled" style="display:none">
+                Training
+            </button>
+            <button id="Stop" class="btn btn-primary btn-md " style="display: none">Stop</button>
+            <button id="Clear" class="btn btn-primary  btn-md">Clear</button>
+        </form>
+
+        <br>
+
+        {% if warnings %}
+        {% for warning in warnings %}
+        {{ warning_message(warning) }}
+        {% endfor %}
+        {% endif %}
+
+        {% if errors %}
+        {% for error in errors %}
+        {{ error_message(error) }}
+        {% endfor %}
+        {% endif %}
+
+
+        <div id="myProgress" style="display:none">
+            <div id="myBar"></div>
+        </div>
+
+        {% if trained %}
+        <h3>Training complete!</h3>
+
+        <h4>Test performance</h4>
+
+        <p>Overall: {{ mean_score }} {{ metric }}</p>
+
+        <h5>By task</h5>
+        {% for i in range(num_tasks) %}
+        <p>{{ task_names[i] }}: {{ task_scores[i] }} {{ metric }}</p>
+        {% endfor %}
+
+        {% endif %}
+    </div>
+    <div class="col-sm-9 ">
+
+
+        <div id="biaoge" style="height: 300px">
+            <div id="example-table"></div>
+        </div>
+
+        <br>
+        <div id="yanshi" style=" background-color: #FF9900;height: 400px;">
+            {% if trained %}
+            <h3>Training complete!</h3>
+
+            <h4>Test performance</h4>
+
+            <p>Overall: {{ mean_score }} {{ metric }}</p>
+
+            <h5>By task</h5>
+            {% for i in range(num_tasks) %}
+            <p>{{ task_names[i] }}: {{ task_scores[i] }} {{ metric }}</p>
+
+
+            {% endfor %}
+
+            {% endif %}
+        </div>
+
+        <script type="text/javascript">
+
+            $("#train").click(function () {
+                document.getElementById("train").form.submit();
+                document.getElementById("train").disabled = "disabled";
+            });
+
+            function refresh() {
+                $.post("receiver", function (data) {
+                    if (data.training == 1) {
+                        document.getElementById("myProgress").style.display = "";
+                        document.getElementById("myBar").style.width = data.progress + "%";
+                        document.getElementById("train").style.display = "none";
+                        document.getElementById("training").style.display = "";
+                        document.getElementById("train").disabled = "disabled";
+                    }
+                });
+            }
+
+            setInterval(refresh, 500);
+
+
+            var table = new Tabulator("#example-table", {
+                layout: "fitColumns",
+                height: "100%",
+                columns: [
+                    {title: "Name", field: "name"},
+                    {title: "Progress", field: "progress", sorter: "number"},
+                    {title: "Gender", field: "gender"},
+                    {title: "Rating", field: "rating"},
+                    {title: "Favourite Color", field: "col"},
+                    {title: "Date Of Birth", field: "dob", align: "center"},
+                ],
+            });
+            table.addData(
+                [
+                    {name: "bob", progress: "0", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "1", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "2", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "3", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "4", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "5", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "6", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "7", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "8", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "9", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "10", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "11", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "12", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "13", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "bob", progress: "14", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
+                    {name: "Jenny", progress: "15", gender: "female", rating: "1123", col: "12134", dob: "qweq2"}
+                ],
+                true);
+        </script>
+        <script type=text/javascript>
+
+        </script>
+
+        <style>
+            #myProgress {
+                width: 90%;
+                border: 1px solid #DCDFE6;
+                background-color: #ddd;
+            }
+
+            #myBar {
+                width: "{{ progress }} %";
+                height: 10px;
+                background-color: #4CAF50;
+            }
+
+        </style>
+    </div>
+
+</div>
+
+{% endblock %}

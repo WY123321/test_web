@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% from 'macros.html' import add_checkpoint, chemdraw, error_message, warning_message %}
+
+{% block title %}
+<h1>Generate </h1>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xs-4">
+        {{ add_checkpoint('generate', checkpoint_upload_warnings, checkpoint_upload_errors) }}
+        <hr>
+
+        <h3>Generate</h3>
+
+        <h4>Model Checkpoint</h4>
+        <select name="model" id="models">
+            <option value="volvo">Volvo</option>
+            <option value="saab">Saab</option>
+            <option value="opel">Opel</option>
+            <option value="audi">Audi</option>
+        </select>
+        <br>
+        <br>
+
+        <button class="btn btn-primary btn-md">Generate</button>
+
+    </div>
+    <div class="col-xs-8">
+        <div style="height: 500px;width: 500px;background-color: #FF9900"></div>
+        <br>
+        <div> Show more &gt;&gt;</div>
+        <button class="btn btn-primary btn-md">Download</button>
+    </div>
+</div>
+{% if warnings %}
+{% for warning in warnings %}
+{{ warning_message(warning) }}
+{% endfor %}
+{% endif %}
+
+{% if errors %}
+{% for error in errors %}
+{{ error_message(error) }}
+{% endfor %}
+{% endif %}
+
+<!--    {% if predicted %}-->
+<!--        <hr>-->
+
+<!--        <a href="{{ url_for('download_predictions') }}"><button class="btn btn-default btn-md">Download Predictions</button></a>-->
+
+<!--        <br>-->
+<!--        <br>-->
+
+<!--        {% for i in range(num_smiles) %}-->
+<!--            <p>SMILES: {{ smiles[i] }}</p>-->
+
+<!--            {% for j in range(num_tasks) %}-->
+<!--                <p>{{ task_names[j] }}: {{ preds[i][j] }}</p>-->
+<!--            {% endfor %}-->
+
+<!--            <hr>-->
+<!--        {% endfor %}-->
+<!--        {% if show_more > 0 %}-->
+<!--            <p>... and {{ show_more }} more. Download file for full predictions.</p>-->
+<!--        {% endif %}-->
+<!--    {% endif %}-->
+{% endblock %}
