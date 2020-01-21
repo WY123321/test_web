@@ -415,7 +415,7 @@ def predict():
     args = parser.parse_args([])
     # Get arguments
     ckpt_id = request.form['checkpointName']
-    app.config['TEMP_FOLDER'] = './web/web_run_tmp'
+    app.config['TEMP_FOLDER'] = './web_xyj/web_run_tmp'
     print(ckpt_id)
     args.test_path=app.config['TEMP_FOLDER']
 
@@ -467,15 +467,17 @@ def predict():
     invalid_smiles_warning = "Invalid SMILES String"
     preds = [pred if pred is not None else [invalid_smiles_warning] * num_tasks for pred in preds]
 
-    return render_predict(predicted=True,
-                          smiles=smiles,
-                          num_smiles=len(smiles),
-                          show_more=0,
-                          task_names=task_names,
-                          num_tasks=len(task_names),
-                          preds=preds,
-                          warnings=["List contains invalid SMILES strings"] if None in preds else None,
-                          errors=["No SMILES strings given"] if len(preds) == 0 else None)
+    jsondata = {"smiles": smiles, "predictions": preds}
+    return jsondata
+    # return render_predict(predicted=True,
+    #                       smiles=smiles,
+    #                       num_smiles=len(smiles),
+    #                       show_more=0,
+    #                       task_names=task_names,
+    #                       num_tasks=len(task_names),
+    #                       preds=preds,
+    #                       warnings=["List contains invalid SMILES strings"] if None in preds else None,
+    #                       errors=["No SMILES strings given"] if len(preds) == 0 else None)
 
 
 @app.route('/predict_old', methods=['GET', 'POST'])

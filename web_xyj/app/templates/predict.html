@@ -122,31 +122,85 @@
                 </select>
                 <br />
                 <br /> {% endif %} -->
+
                 <button type="submit" class="btn btn-primary btn-md" id="predict_result">Predict</button>
                 <button type="submit" class="btn btn-primary btn-md">Predict ALL</button>
             </form>
 
             <script type="text/javascript">
-                $.ajax({
-                    type: "POST",
-                    url: "http://192.168.50.99:5001/predict",
-                    contentType: 'application/x-www-form-urlencoded;charset=utf-8',
-                    data: {},
-                    dataType: "json",
-                    success: function (data) {
-                        console.log(data);
-                    },
-                    error: function (error) {
-                        console.log(error);
-                    }
-                });
 
+
+                // $.ajax({
+                //     type: "POST",
+                //     url: "http://192.168.50.99:5001/predict",
+                //     contentType: 'application/x-www-form-urlencoded;charset=utf-8',
+                //     data: {},
+                //     dataType: "json",
+                //     success: function (data) {
+                //         console.log(data);
+                //     },
+                //     error: function (error) {
+                //         console.log(error);
+                //     }
+                // });
+
+
+                // $(document).ready(function () {
+                //     var out = "";
+                //     $("#submitGenerateForm").click(function (event) {
+                //         event.preventDefault();
+                //         var checkedmodel = "";
+                //         $.each($('input:checkbox:checked'), function () {
+                //             checkedmodel += $(this).val() + ",";
+                //         });
+                //         var data = {"checkpointName": checkedmodel, "n_sample_per_model": "100", "filter": "None"};
+                //         alert(data);
+                //         $.post({
+                //             url: "/generate",
+                //             data: JSON.stringify(data),
+                //             contentType: "application/json; charset=utf-8",
+                //             dataType: "json",
+                //             async: false,
+                //             success: function (data) {
+                //                 alert(data['1']['all_svg_path']);
+                //             }
+                //
+                //         });
+                //     });
+                // });
 
                 $(document).ready(function () {
 
 
-                    $("#predict_result").click(function () {
+                    $("#predict_result").click(function (event)  {
                         console.log("111111");
+
+                        event.preventDefault();
+                        var checkedmodel = "";
+                        $.each($('input:selected:checked'), function () {
+                            checkedmodel += $(this).val() + ",";
+                        });
+                        var data = {"checkpointName": checkedmodel, "data": "", "textSmiles": "","drawSmiles":""};
+                        console.log(data);
+                        // alert(data);
+                        $.post({
+                            url: "/generate",
+                            data: JSON.stringify(data),
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            async: false,
+                            success: function (data) {
+                                console.log(data);
+                                // alert(data['1']['all_svg_path']);
+                            },
+                            error:function() {
+                                console.log("失败了")
+                            }
+
+                        });
+
+
+
                     });
                 });
             </script>
@@ -175,29 +229,6 @@
         <br>
         <br>
         <div id="example-table" style="height: 500px;width: 100%"></div>
-        <script type="text/javascript">
-
-            var table = new Tabulator("#example-table", {
-                layout: "fitColumns",
-                height: "100%",
-                columns: [
-                    {title: "Name", field: "name"},
-                    {title: "Progress", field: "progress", sorter: "number"},
-                    {title: "Gender", field: "gender"},
-                    {title: "Rating", field: "rating"},
-                    {title: "Favourite Color", field: "col"},
-                    {title: "Date Of Birth", field: "dob", align: "center"},
-                ],
-            });
-            table.addData(
-                [
-                    {name: "bob", progress: "0", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-                    {name: "bob", progress: "1", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-                    {name: "bob", progress: "2", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-                    {name: "bob", progress: "3", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-                ],
-                true);
-        </script>
 
 
         <!--            <hr/>-->
@@ -208,18 +239,33 @@
         <!--            </a>-->
         <br/>
         <br/>
-        {% for i in range(num_smiles) %}
-        <p>SMILES: {{ smiles[i] }}</p>
 
-        {% for j in range(num_tasks) %}
-        <p>{{ task_names[j] }}: {{ preds[i][j] }}</p>
-        {% endfor %}
-        <hr/>
-        {% endfor %}
+        <script type="text/javascript">
 
-        {% if show_more > 0 %}
-        <p>... and {{ show_more }} more. Download file for full predictions.</p>
-        {% endif %}
+            // var table = new Tabulator("#example-table", {
+            //     layout: "fitColumns",
+            //     height: "100%",
+            //     columns: [
+            //         {title: "SMILES", field: "name"},
+            //         {title: "Progress", field: "progress", sorter: "number"},
+            //     ],
+            // });
+            //
+            // table.addData(
+            //     [{name: "bob", progress: "0",},], true);
+        </script>
+        <!--        {% for i in range(num_smiles) %}-->
+        <!--        <p>SMILES: {{ smiles[i] }} </p>-->
+
+        <!--        {% for j in range(num_tasks) %}-->
+        <!--        <p>{{ task_names[j] }}: {{ preds[i][j] }}</p>-->
+        <!--        {% endfor %}-->
+        <!--        <hr/>-->
+        <!--        {% endfor %}-->
+
+        <!--        {% if show_more > 0 %}-->
+        <!--        <p>... and {{ show_more }} more. Download file for full predictions.</p>-->
+        <!--        {% endif %}-->
         {% endif %}
 
     </div>
