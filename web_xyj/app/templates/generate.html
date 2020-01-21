@@ -13,7 +13,7 @@
     {{ add_gmodel_checkpoint('generate', checkpoint_upload_warnings, checkpoint_upload_errors) }}
     <hr>
     {% endif %}
-
+    
     <form id="generateForm">
         <!--Model checkpoint selector-->
         <h3>Gmodel checkpoint(s)</h3>
@@ -27,45 +27,72 @@
             {% for checkpoint in checkpoints %}
                 {% if "generation" in checkpoint['class'] %}
                     <input type="checkbox" class="custom-control-input" value="{{checkpoint[0] }}" checked>
-                    <label class="custom-control-label" for="defaultChecked2">{{checkpoint[0] }}: {{ checkpoint[1] }}</label>
+                    <label class="custom-control-label" for="defaultChecked2">{{checkpoint[0] }}: {{ checkpoint[1] }} {{ gen }}</label>
                 {% endif %}
             {% endfor %}
         </div>
         <br>
-        <button type="submit" class="btn btn-primary btn-md" onclick="submitGenerateForm()">Generate</button>
+        <button type="submit" class="btn btn-primary btn-md" id="submitGenerateForm">Generate</button>
     </form>
+
+    {% if warnings %}
+    {% for warning in warnings %}
+    {{ warning_message(warning) }}
+    {% endfor %}
+    {% endif %}
+
+    {% if errors %}
+    {% for error in errors %}
+    {{ error_message(error) }}
+    {% endfor %}
+    {% endif %}
+
     </div>
 
     <div class="col-xs-7 col-sm-7 col-lg-7">
 
+        <div id = "showResult"></div>
 
     </div>
 </div>
 
 
 <script type=text/javascript>
-  function submitGenerateForm(){
-    var checkedmodel = "";
-    $.each($('input:checkbox:checked'),function(){
-        checkedmodel += $(this).val() + ",";
+    var out= "";
+    $("#submitGenerateForm").click(function (event) {
+        event.preventDefault();
+        var checkedmodel = "";
+        $.each($('input:checkbox:checked'),function(){
+            checkedmodel += $(this).val() + ",";
+        });
+        var data = {"checkpointName": checkedmodel, "n_sample_per_model" : "100", "filter": "None"};
+        $.post({
+            url: "/generate",
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            async: false,
+            "success": function(data){
+                $("#showResult").html(data['1']['all_svg_path']);
+            },
+            "fail": function(error){
+                console.log(error);
+            }
+        });
     });
-    var data = {"checkpointName": checkedmodel, "n_sample_per_model" : "1000", "filter": "None"};
+    
+    /***    
     $.ajax({
-        url: "/generate",
-        type:"post",
+        url: "{{ url_for('generate') }}",
+        type: "post",
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(data),
         dataType: "json",
-        success:function(data){
-            alert("success");
-        },
-        error:function(e){
-            alert("error to generate");
+        success:function(response){
+            alert(response);
         }
     });
-
-
-  }
+    ***/
 </script>
 
 {% endblock %}

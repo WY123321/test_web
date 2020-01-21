@@ -2,19 +2,17 @@
 {% from 'macros.html' import add_data %}
 
 {% block title %}
-<h1>Data</h1>
+    <h1>Data</h1>
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-xs-4">
-        {{ add_data('data', data_upload_warnings, data_upload_errors) }}
+    {{ add_data('data', data_upload_warnings, data_upload_errors) }}
 
-        <hr>
+    <hr>
 
-        <h3>Datasets</h3>
-        <table class="table table-hover" style="width:auto">
-            {% for dataset in datasets %}
+    <h3>Datasets</h3>
+    <table class="table table-hover" style="width:auto">
+        {% for dataset in datasets %}
             <tr>
                 <th style="vertical-align: middle;">{{dataset['dataset_name']}}</th>
                 <th>
@@ -26,46 +24,7 @@
                     </a>
                 </th>
             </tr>
-            {% endfor %}
-        </table>
-    </div>
-    <div class="col-xs-8">
-        <div id="example-table" style="height: 500px;width: 80%"></div>
-    </div>
-</div>
+        {% endfor %}
+    </table>
 
-<script type="text/javascript">
-    var table = new Tabulator("#example-table", {
-        layout: "fitColumns",
-        height: "100%",
-        columns: [
-            {title: "Name", field: "name"},
-            {title: "Progress", field: "progress", sorter: "number"},
-            {title: "Gender", field: "gender"},
-            {title: "Rating", field: "rating"},
-            {title: "Favourite Color", field: "col"},
-            {title: "Date Of Birth", field: "dob", align: "center"},
-        ],
-    });
-    table.addData(
-        [
-            {name: "bob", progress: "0", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "1", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "2", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "3", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "4", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "5", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "6", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "7", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "8", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "9", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "10", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "11", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "12", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "13", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "bob", progress: "14", gender: "male", rating: "1123", col: "12134", dob: "qweq2"},
-            {name: "Jenny", progress: "15", gender: "female", rating: "1123", col: "12134", dob: "qweq2"}
-        ],
-        true);
-</script>
 {% endblock %}

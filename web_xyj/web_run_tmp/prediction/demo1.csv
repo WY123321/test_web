@@ -1,0 +1,7 @@
+smiles,-logKd/Ki_pred
+c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3,6.48962536783078
+COc1ccc([C@@]2(c3cccc(C#N)c3)COC(N)=N2)cc1,6.563495596171469
+NC1=N[C@@](c2cccc(-c3ccccc3)c2)CO1,4.50168607105138
+CCOc1ccc([C@@]2([C@]3(c4ccc(OC)cc4)COC(N)=N3)COC(N)=N2)cc1,6.577646289848259
+NC1=N[C@@](c2ccc(-c3ccccc3)cc2)CO1,4.499809959589793
+COc1ccc([C@@H]c2cccc(-c3cncnc3)c2)cc1,5.673565346696403

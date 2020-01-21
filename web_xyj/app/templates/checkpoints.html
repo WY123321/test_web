@@ -2,78 +2,48 @@
 {% from 'macros.html' import add_checkpoint %}
 
 {% block title %}
-<h1>Checkpoints</h1>
+    <h1>Checkpoints</h1>
 {% endblock %}
 
 {% block content %}
+    {{ add_checkpoint('checkpoints', checkpoint_upload_warnings, checkpoint_upload_errors) }}
 
-<div class="row">
-    <div class="col-xs-6">
-        {{ add_checkpoint('checkpoints', checkpoint_upload_warnings, checkpoint_upload_errors) }}
+    <hr>
 
-        <hr>
+    <h3>Model Checkpoints</h3>
+    <table class="table table-hover" style="width:auto">
+        {% for checkpoint in checkpoints %}
+        {% if "generation" in checkpoint['class'] %}
+        <tr>
+            <th style="vertical-align: middle;">{{ checkpoint['ckpt_name'] }}</th>
+            <th style="vertical-align: middle;">Type: {{ checkpoint['class'] }}</th>
+            <th style="vertical-align: middle;">Seed: {{ checkpoint['training_size'] }} </th>
+            <th>
+                <a href="{{ url_for('download_checkpoint', checkpoint=checkpoint['id']) }}">
+                    <button class="btn btn-default btn-sm">Download</button>
+                </a>
+                <a href="{{ url_for('delete_checkpoint', checkpoint=checkpoint['id']) }}">
+                    <button class="btn btn-danger btn-sm">Delete</button>
+                </a>
+            </th>
+        </tr>
 
-        <h3>Model Checkpoints</h3>
-        <table class="table table-hover" style="width:auto">
-            {% for checkpoint in checkpoints %}
-            <tr>
-                <th style="vertical-align: middle;">{{ checkpoint['ckpt_name'] }}</th>
-                <th><span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip"
-                          data-placement="right"
-                          title="Epochs: {{ checkpoint['epochs'] }}
-                          Ensemble Size: {{ checkpoint['ensemble_size'] }}
-                          Training Size: {{ checkpoint['training_size'] }} molecules"></span></th>
-
-
-                <!--                                <th style="vertical-align: middle;">Epochs: {{ checkpoint['epochs'] }}</th>-->
-                <!--                                <th style="vertical-align: middle;">Ensemble Size: {{ checkpoint['ensemble_size'] }}</th>-->
-                <!--                                <th style="vertical-align: middle;">Training Size: {{ checkpoint['training_size'] }} molecules</th>-->
-
-                <th>
-                    <a href="{{ url_for('download_checkpoint', checkpoint=checkpoint['id']) }}">
-                        <button class="btn btn-default btn-sm">Download</button>
-                    </a>
-                    <a href="{{ url_for('delete_checkpoint', checkpoint=checkpoint['id']) }}">
-                        <button class="btn btn-danger btn-sm">Delete</button>
-                    </a>
-                </th>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-    <div class="col-xs-6">
-        <div id="example-table" style="height: 500px;width: 80%"></div>
-    </div>
-</div>
-
-<script type="text/javascript">
-    var table = new Tabulator("#example-table", {
-        layout: "fitColumns",
-        height: "100%",
-        columns: [
-            {title: "Name", field: "name"},
-            {title: "Progress", field: "progress", sorter: "number"},
-            {title: "Gender", field: "gender"},
-        ],
-    });
-    table.addData(
-        [
-            {name: "bob", progress: "0", gender: "male"},
-            {name: "bob", progress: "1", gender: "male"},
-            {name: "bob", progress: "2", gender: "male"},
-            {name: "bob", progress: "3", gender: "male"},
-            {name: "bob", progress: "4", gender: "male"},
-            {name: "bob", progress: "5", gender: "male"},
-            {name: "bob", progress: "6", gender: "male"},
-            {name: "bob", progress: "7", gender: "male"},
-            {name: "bob", progress: "8", gender: "male"},
-            {name: "bob", progress: "9", gender: "male"},
-            {name: "bob", progress: "10", gender: "male"},
-            {name: "bob", progress: "11", gender: "male"},
-            {name: "bob", progress: "12", gender: "male"},
-            {name: "bob", progress: "13", gender: "male"},
-            {name: "bob", progress: "14", gender: "male"},
-        ],
-        true);
-</script>
+        {% else %}
+        <tr>
+            <th style="vertical-align: middle;">{{ checkpoint['ckpt_name'] }}</th>
+            <th style="vertical-align: middle;">Type: {{ checkpoint['class'] }}</th>
+            <!-- <th style="vertical-align: middle;">Ensemble Size: {{ checkpoint['ensemble_size'] }}</th> -->
+            <th style="vertical-align: middle;">Training Size: {{ checkpoint['training_size'] }} </th>
+            <th>
+                <a href="{{ url_for('download_checkpoint', checkpoint=checkpoint['id']) }}">
+                    <button class="btn btn-default btn-sm">Download</button>
+                </a>
+                <a href="{{ url_for('delete_checkpoint', checkpoint=checkpoint['id']) }}">
+                    <button class="btn btn-danger btn-sm">Delete</button>
+                </a>
+            </th>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </table>
 {% endblock %}
