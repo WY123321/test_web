@@ -94,6 +94,7 @@
             checkedmodel += $(this).val() + ",";
         });
         var data = {"checkpointName": checkedmodel, "n_sample_per_model": "1000", "filter": "None"};
+        console.log(data)
         $.ajax({
             url: "/generate",
             type: "post",

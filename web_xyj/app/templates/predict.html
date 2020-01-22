@@ -20,12 +20,26 @@
                 <!--Model checkpoint selector-->
                 <h3>Model checkpoint</h3>
                 <div class="row">
-                    <div class="col-xs-8">
-                        <select name="checkpointName" class="form-control" required>
+                    <div class="col-xs-12">
+
+                        <div class="custom-control custom-checkbox" name="checkpointName" style="height: 100px;overflow-x: hidden;
+        overflow-y: scroll;">
                             {% for checkpoint in checkpoints %}
-                            <option value="{{ checkpoint[0] }}">{{ checkpoint[1] }}</option>
+                            <input type="checkbox" class="custom-control-input" value="{{checkpoint[0] }}"
+                                   id="{{checkpoint[0] }}"
+                                   checked>
+                            <label class="custom-control-label" for="{{checkpoint[0] }}">{{checkpoint[1]}}</label>
+                            <br>
                             {% endfor %}
-                        </select>
+
+
+                        </div>
+
+                        <!--                        <select name="checkpointName" class="form-control" required>-->
+                        <!--                            {% for checkpoint in checkpoints %}-->
+                        <!--                            <option value="{{ checkpoint[0] }}">{{ checkpoint[1] }}</option>-->
+                        <!--                            {% endfor %}-->
+                        <!--                        </select>-->
                     </div>
                 </div>
                 <br>
@@ -55,8 +69,14 @@
                               required></textarea>
                 </div>
                 <div id="fileInputForm" style="display:none">
+                    <!--                    <form enctype="multipart/form-data" id="form_example">-->
+
+
                     <h5>File containing SMILES (one per line)</h5>
+
                     <input id="fileSmilesInput" type="file" name="data" accept=".csv"/>
+                    <!--                    </form>-->
+
                 </div>
                 <div id="drawInputForm" style="display:none">
                     <h5>Draw a molecule</h5>
@@ -125,85 +145,97 @@
 
                 <button type="submit" class="btn btn-primary btn-md" id="predict_result">Predict</button>
                 <button type="submit" class="btn btn-primary btn-md">Predict ALL</button>
+
             </form>
 
             <script type="text/javascript">
 
 
-                // $.ajax({
-                //     type: "POST",
-                //     url: "http://192.168.50.99:5001/predict",
-                //     contentType: 'application/x-www-form-urlencoded;charset=utf-8',
-                //     data: {},
-                //     dataType: "json",
-                //     success: function (data) {
-                //         console.log(data);
-                //     },
-                //     error: function (error) {
-                //         console.log(error);
-                //     }
-                // });
-
-
-                // $(document).ready(function () {
-                //     var out = "";
-                //     $("#submitGenerateForm").click(function (event) {
-                //         event.preventDefault();
-                //         var checkedmodel = "";
-                //         $.each($('input:checkbox:checked'), function () {
-                //             checkedmodel += $(this).val() + ",";
-                //         });
-                //         var data = {"checkpointName": checkedmodel, "n_sample_per_model": "100", "filter": "None"};
-                //         alert(data);
-                //         $.post({
-                //             url: "/generate",
-                //             data: JSON.stringify(data),
-                //             contentType: "application/json; charset=utf-8",
-                //             dataType: "json",
-                //             async: false,
-                //             success: function (data) {
-                //                 alert(data['1']['all_svg_path']);
-                //             }
-                //
-                //         });
-                //     });
-                // });
-
                 $(document).ready(function () {
 
 
-                    $("#predict_result").click(function (event)  {
-                        console.log("111111");
+                    $("#predict_result").click(function (event) {
 
                         event.preventDefault();
+
                         var checkedmodel = "";
-                        $.each($('input:selected:checked'), function () {
+                        $.each($('input:checkbox:checked'), function () {
                             checkedmodel += $(this).val() + ",";
                         });
-                        var data = {"checkpointName": checkedmodel, "data": "", "textSmiles": "","drawSmiles":""};
-                        console.log(data);
-                        // alert(data);
-                        $.post({
-                            url: "/generate",
-                            data: JSON.stringify(data),
-                            contentType: "application/json; charset=utf-8",
-                            dataType: "json",
+                        checkedmodel = checkedmodel.substring(0, checkedmodel.length - 1)
+
+                        var form = new FormData();
+                        form.append('checkpointName', checkedmodel.split(",")[0]);
+                        form.append('data', $('#fileSmilesInput')[0].files[0]);
+                        form.append('textSmiles', "");
+                        form.append('drawSmiles', "");
+                        form.append('usejson', "true");
+                        var tabledata = ""
+                        // console.log(form);
+                        $.ajax({
+                            url: "/predict",
+                            type: "post",
+                            data: form,
+                            contentType: false,
+                            processData: false,
                             async: false,
                             success: function (data) {
-                                console.log(data);
-                                // alert(data['1']['all_svg_path']);
+                                tabledata = data;
+                                predicttable();
                             },
-                            error:function() {
+                            error: function () {
                                 console.log("失败了")
                             }
 
                         });
 
+                        function predicttable() {
+                            var otherhead = [];
+                            var othercontent = [];
+                            var smileshead = [];
+                            var smilescontent = [];
 
+                            $.each(tabledata, function (index, obj) {
+                                if (index == "smiles") {
+                                    smileshead.push(index)
+                                    smilescontent.push(obj)
+                                } else {
+                                    otherhead.push(index)
+                                    othercontent.push(obj)
+                                }
+                            });
+                            var head = []
 
+                            let headcache2 = {}
+                            headcache2["title"] = smileshead[0];
+                            headcache2["field"] = smileshead[0];
+                            head.push(headcache2);
+
+                            for (let j = 0; j < otherhead.length; j++) {
+                                let headcache = {}
+                                headcache["title"] = otherhead[j];
+                                headcache["field"] = otherhead[j];
+                                head.push(headcache)
+                            }
+                            var table = new Tabulator("#example-table", {
+                                layout: "fitColumns",
+                                height: "100%",
+                                columns: head,
+                            });
+
+                            for (let i = 0; i < othercontent[0].length; i++) {
+                                var content = [{}];
+                                content[0][smileshead[0]] = smilescontent[0][i];
+                                for (let j = 0; j < otherhead.length; j++) {
+                                    content[0][otherhead[j]] = othercontent[j][i];
+                                }
+                                table.addData(content, true)
+                            }
+                        }
                     });
                 });
             </script>
+
             {% if warnings %}
             {% for warning in warnings %}
             {{ warning_message(warning) }}
@@ -218,55 +250,45 @@
 
         </div>
 
-        {% if predicted %}
-        <hr>
         <div class="row">
+            <hr class="col-xs-12">
             <h4 class="col-xs-2">Predict 结果</h4>
             <a href="{{ url_for('download_predictions') }}">
                 <button type="submit" class="btn btn-default btn-md col-xs-2 col-md-offset-8">DownLoad CSV</button>
             </a>
+            <br>
+            <div id="example-table" style="height: 500px;width: 100%"></div>
+            <script type="text/javascript">
+
+
+            </script>
         </div>
-        <br>
-        <br>
-        <div id="example-table" style="height: 500px;width: 100%"></div>
+        <!--        {% if predicted %}-->
 
 
-        <!--            <hr/>-->
-        <!--            <a href="{{ url_for('download_predictions') }}">-->
-        <!--                <button class="btn btn-default btn-md">Download-->
-        <!--                    Predictions-->
-        <!--                </button>-->
-        <!--            </a>-->
+        <hr/>
+        <a href="{{ url_for('download_predictions') }}">
+            <button class="btn btn-default btn-md">Download
+                Predictions
+            </button>
+        </a>
         <br/>
         <br/>
 
-        <script type="text/javascript">
 
-            // var table = new Tabulator("#example-table", {
-            //     layout: "fitColumns",
-            //     height: "100%",
-            //     columns: [
-            //         {title: "SMILES", field: "name"},
-            //         {title: "Progress", field: "progress", sorter: "number"},
-            //     ],
-            // });
-            //
-            // table.addData(
-            //     [{name: "bob", progress: "0",},], true);
-        </script>
-        <!--        {% for i in range(num_smiles) %}-->
-        <!--        <p>SMILES: {{ smiles[i] }} </p>-->
+        <!--                {% for i in range(num_smiles) %}-->
+        <!--                <p>SMILES: {{ smiles[i] }} </p>-->
 
-        <!--        {% for j in range(num_tasks) %}-->
-        <!--        <p>{{ task_names[j] }}: {{ preds[i][j] }}</p>-->
-        <!--        {% endfor %}-->
-        <!--        <hr/>-->
-        <!--        {% endfor %}-->
+        <!--                {% for j in range(num_tasks) %}-->
+        <!--                <p>{{ task_names[j] }}: {{ preds[i][j] }}</p>-->
+        <!--                {% endfor %}-->
+        <!--                <hr/>-->
+        <!--                {% endfor %}-->
 
-        <!--        {% if show_more > 0 %}-->
-        <!--        <p>... and {{ show_more }} more. Download file for full predictions.</p>-->
+        <!--                {% if show_more > 0 %}-->
+        <!--                <p>... and {{ show_more }} more. Download file for full predictions.</p>-->
+        <!--                {% endif %}-->
         <!--        {% endif %}-->
-        {% endif %}
 
     </div>
 </div>

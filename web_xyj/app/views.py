@@ -394,17 +394,18 @@ def pred_with_one_model(args, ckpt_id, gpu):
 def predict():
     """Renders the predict page and makes predictions if the method is POST.
 
+    Content-Type: multipart/form-data
     @@@
     #### example
     ```
     curl -X POST url  -F 'checkpointName=<checkpointName option>' -F 'textSmiles=<smiles>'
     curl -X POST url -F 'checkpointName=<checkpointName option>' -F 'textSmiles=' -F 'drawSmiles=<drawSmilesInput>'
-    curl -X POST url -F 'checkpointName=<checkpointName option>' -F 'textSmiles=' -F 'drawSmiles=' -F 'data=@<fileSmilesInput>'
+    curl -X POST url -F 'checkpointName=<checkpointName option>' -F 'textSmiles=' -F 'drawSmiles=' -F 'data=@<fileSmilesInput>' or -F "usejson=True"
     ```
     #### return
     - ##### predict.html
+    - ##### json data if usejson is True
     @@@
-
     """
     if request.method == 'GET':
         return render_predict()
@@ -415,10 +416,8 @@ def predict():
     args = parser.parse_args([])
     # Get arguments
     ckpt_id = request.form['checkpointName']
-    app.config['TEMP_FOLDER'] = './web_xyj/web_run_tmp'
     print(ckpt_id)
-    args.test_path=app.config['TEMP_FOLDER']
-
+    args.test_path = app.config['TEMP_FOLDER']
 
     if request.form['textSmiles'] != '':
         smiles = request.form['textSmiles'].split()
@@ -428,24 +427,26 @@ def predict():
         print(" GOT HERE")
         # Upload data file with SMILES
         data = request.files['data']
-        print(data)
+        # print(data)
         data_name = secure_filename(data.filename)
         data_path = os.path.join(app.config['TEMP_FOLDER'], "raw", data_name)
         data.save(data_path)
-        args.preds_path=os.path.join("prediction", data_name)
+        args.preds_path = os.path.join("prediction", data_name)
         args.data_name = data_name.split(".")[0]
-        app.config['PREDICTIONS_FILENAME']= args.preds_path
+        app.config['PREDICTIONS_FILENAME'] = args.preds_path
 
         # Check if header is smiles
         possible_smiles = get_header(data_path)[0]
-        smiles = [possible_smiles] if Chem.MolFromSmiles(possible_smiles) is not None else []
-        print(data_path)
+        smiles = [possible_smiles] if Chem.MolFromSmiles(
+            possible_smiles) is not None else []
+        # print(data_path)
         # Get remaining smiles
         smiles.extend(get_smiles(data_path))
 
-    print(smiles)
+    # print(smiles)
     models = db.get_models(ckpt_id)
-    model_paths = [os.path.join(app.config['CHECKPOINT_FOLDER'], f'{model["id"]}.pt') for model in models]
+    model_paths = [os.path.join(
+        app.config['CHECKPOINT_FOLDER'], f'{model["id"]}.pt') for model in models]
 
     task_names = load_task_names(model_paths[0])
     num_tasks = len(task_names)
@@ -460,24 +461,33 @@ def predict():
     # Run predictions
     preds = make_predictions(args)
 
+    if request.form['usejson']:
+        preds_arr = np.array(preds)
+        jsondata = {}
+        jsondata["smiles"] = smiles
+        for i, task_name in enumerate(task_names):
+            jsondata[task_name] = list(preds_arr[:, i])
+        return jsonify(jsondata)
+
     if all(p is None for p in preds):
         return render_predict(errors=['All SMILES are invalid'])
 
     # Replace invalid smiles with message
     invalid_smiles_warning = "Invalid SMILES String"
-    preds = [pred if pred is not None else [invalid_smiles_warning] * num_tasks for pred in preds]
+    preds = [pred if pred is not None else [
+        invalid_smiles_warning] * num_tasks for pred in preds]
 
-    jsondata = {"smiles": smiles, "predictions": preds}
-    return jsondata
-    # return render_predict(predicted=True,
-    #                       smiles=smiles,
-    #                       num_smiles=len(smiles),
-    #                       show_more=0,
-    #                       task_names=task_names,
-    #                       num_tasks=len(task_names),
-    #                       preds=preds,
-    #                       warnings=["List contains invalid SMILES strings"] if None in preds else None,
-    #                       errors=["No SMILES strings given"] if len(preds) == 0 else None)
+    return render_predict(predicted=True,
+                          smiles=smiles,
+                          num_smiles=len(smiles),
+                          show_more=0,
+                          task_names=task_names,
+                          num_tasks=len(task_names),
+                          preds=preds,
+                          warnings=[
+                              "List contains invalid SMILES strings"] if None in preds else None,
+                          errors=["No SMILES strings given"] if len(preds) == 0 else None)
+
 
 
 @app.route('/predict_old', methods=['GET', 'POST'])
